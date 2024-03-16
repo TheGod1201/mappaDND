@@ -1,0 +1,42 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    cursor: move;
+    overflow: hidden;
+    background-image: url(mappaDnd.png);
+    background-size: 75vh;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .square {
+    width: 50px;
+    height: 50px;
+    background-color: rgba(255, 255, 255, 0);
+    border: 1px solid #000000;
+    position: absolute;
+    z-index: 1;
+  }
+
+  #slider-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 999;
+    width: 150px;
+    height: 25px;
+    background-color: rgba(53, 59, 58, 0.8);
+    border: 5px solid red;
+    border-radius: 10px;
+    padding: 5px;
+    cursor: move; /* Reimposta il cursore per lo slider-container */
+  }
