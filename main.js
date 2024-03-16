@@ -1,5 +1,3 @@
-
-
 const container = document.getElementById('container');
   const zoomSlider = document.getElementById('zoom-slider');
   const sliderContainer = document.getElementById('slider-container');
@@ -18,38 +16,61 @@ const container = document.getElementById('container');
     }
   }
 
-  // Imposta l'evento di trascinamento del container per dispositivi desktop e mobile
+  // Imposta l'evento di trascinamento del container
   let isContainerMouseDown = false;
   let containerStartX, containerStartY;
 
-  function handleMouseDown(e) {
+  sliderContainer.addEventListener('mousedown', (e) => {
     isContainerMouseDown = true;
-    containerStartX = e.pageX || e.touches[0].pageX - sliderContainer.offsetLeft;
-    containerStartY = e.pageY || e.touches[0].pageY - sliderContainer.offsetTop;
-  }
+    containerStartX = e.pageX - sliderContainer.offsetLeft;
+    containerStartY = e.pageY - sliderContainer.offsetTop;
+  });
 
-  function handleMouseUp() {
+  sliderContainer.addEventListener('touchstart', (e) => {
+    isContainerMouseDown = true;
+    containerStartX = e.touches[0].pageX - sliderContainer.offsetLeft;
+    containerStartY = e.touches[0].pageY - sliderContainer.offsetTop;
+  });
+
+  window.addEventListener('mouseup', () => {
     isContainerMouseDown = false;
-  }
+  });
 
-  function handleMouseMove(e) {
+  window.addEventListener('touchend', () => {
+    isContainerMouseDown = false;
+  });
+
+  window.addEventListener('mousemove', (e) => {
     if (isContainerMouseDown) {
       e.preventDefault();
-      const newX = (e.pageX || e.touches[0].pageX) - containerStartX;
-      const newY = (e.pageY || e.touches[0].pageY) - containerStartY;
+      const newX = e.pageX - containerStartX;
+      const newY = e.pageY - containerStartY;
       sliderContainer.style.left = newX + 'px';
       sliderContainer.style.top = newY + 'px';
     }
-  }
+  });
 
-  sliderContainer.addEventListener('mousedown', handleMouseDown);
-  sliderContainer.addEventListener('touchstart', handleMouseDown);
+  window.addEventListener('touchmove', (e) => {
+    if (isContainerMouseDown) {
+      e.preventDefault();
+      const newX = e.touches[0].pageX - containerStartX;
+      const newY = e.touches[0].pageY - containerStartY;
+      sliderContainer.style.left = newX + 'px';
+      sliderContainer.style.top = newY + 'px';
+    }
+  });
 
-  window.addEventListener('mouseup', handleMouseUp);
-  window.addEventListener('touchend', handleMouseUp);
-
-  window.addEventListener('mousemove', handleMouseMove);
-  window.addEventListener('touchmove', handleMouseMove);
+  // Restituisci lo slider al centro della finestra quando si trascina
+  window.addEventListener('resize', () => {
+    if (!isContainerMouseDown) {
+      const windowWidth = window.innerWidth;
+      const sliderWidth = sliderContainer.offsetWidth;
+      const windowHeight = window.innerHeight;
+      const sliderHeight = sliderContainer.offsetHeight;
+      sliderContainer.style.left = (windowWidth - sliderWidth) / 2 + 'px';
+      sliderContainer.style.top = (windowHeight - sliderHeight) / 2 + 'px';
+    }
+  });
   
   // Imposta l'evento di trascinamento solo quando zoommato
   let isMouseDown = false;
@@ -65,7 +86,21 @@ const container = document.getElementById('container');
     }
   });
 
+  container.addEventListener('touchstart', (e) => {
+    if (parseInt(zoomSlider.value) > 100) {
+      isMouseDown = true;
+      startMouseX = e.touches[0].pageX;
+      startMouseY = e.touches[0].pageY;
+      startBackgroundX = parseInt(getComputedStyle(container).backgroundPositionX);
+      startBackgroundY = parseInt(getComputedStyle(container).backgroundPositionY);
+    }
+  });
+
   window.addEventListener('mouseup', () => {
+    isMouseDown = false;
+  });
+
+  window.addEventListener('touchend', () => {
     isMouseDown = false;
   });
 
@@ -74,6 +109,31 @@ const container = document.getElementById('container');
     e.preventDefault();
     const moveX = e.pageX - startMouseX;
     const moveY = e.pageY - startMouseY;
+
+    // Limita il movimento al bordo dell'immagine di sfondo
+    const containerWidth = container.offsetWidth;
+    const containerHeight = container.offsetHeight;
+    const backgroundImageWidth = containerWidth * (zoomSlider.value / 100);
+    const backgroundImageHeight = containerHeight * (zoomSlider.value / 40);
+    const minBackgroundPositionX = containerWidth - backgroundImageWidth;
+    const minBackgroundPositionY = containerHeight - backgroundImageHeight;
+
+    let backgroundPositionX = startBackgroundX + moveX;
+    let backgroundPositionY = startBackgroundY + moveY;
+
+    if (backgroundPositionX > 0) backgroundPositionX = 0;
+    if (backgroundPositionY > 0) backgroundPositionY = 0;
+    if (backgroundPositionX < minBackgroundPositionX) backgroundPositionX = minBackgroundPositionX;
+    if (backgroundPositionY < minBackgroundPositionY) backgroundPositionY = minBackgroundPositionY
+    container.style.backgroundPositionX = backgroundPositionX + 'px';
+    container.style.backgroundPositionY = backgroundPositionY + 'px';
+  });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!isMouseDown) return;
+    e.preventDefault();
+    const moveX = e.touches[0].pageX - startMouseX;
+    const moveY = e.touches[0].pageY - startMouseY;
 
     // Limita il movimento al bordo dell'immagine di sfondo
     const containerWidth = container.offsetWidth;
@@ -122,8 +182,8 @@ const container = document.getElementById('container');
     }
     
     // Riporta l'immagine alla posizione iniziale se lo zoom è al minimo
-  if (zoomValue == zoomSlider.min) {
-  container.style.backgroundPositionX = 'center';
-  container.style.backgroundPositionY = 'center';
-  }
+    if (zoomValue == zoomSlider.min) {
+      container.style.backgroundPositionX = 'center';
+      container.style.backgroundPositionY = 'center';
+    }
   });
